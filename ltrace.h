@@ -23,7 +23,8 @@ extern "C" {
 #define H64(s,i,x)  H16(s,i,H16(s,i+16,H16(s,i+32,H16(s,i+48,x))))
 #define H256(s,i,x) H64(s,i,H64(s,i+64,H64(s,i+128,H64(s,i+192,x))))
 
-#define HASH(s)    ((uint32_t)(H256(s,0,0)^(H256(s,0,0)>>16)))
+#define HASH32(s)    ((uint32_t)(H256(s,0,0)^(H256(s,0,0)>>16)))
+#define HASH16(s)    ((uint16_t)((uint32_t)(H256(s,0,0)^(H256(s,0,0)>>16))))
 /*
  * Needed typedefs
  */
@@ -38,22 +39,29 @@ typedef enum {
 } log_t;
 
 typedef enum {
-    LT_ERROR = -1,
-    LT_OK,
+    LT_ERROR = -1,  //! General Error */
+    LT_OK,          //! General "Everything is OK" return message
 } ltrace_msg_e;
 
 #define COMP_TYPE LT_UNKNOWN -1
 
 typedef struct lt_init_t_
 {
-    uint16_t (*write)(uint8_t *buf, uint16_t cnt);
+    /**
+     * Write buffer to logging device.
+     * \param buf Buffer keeping the data to be send
+     * \param cnt Count of bytes to be transfered on input, returns the count of bytes really transfered.
+     *
+     * \return message code as described in the enum
+     */
+    ltrace_msg_e (*write)(uint8_t *buf, uint16_t *cnt);
 } lt_init_t;
 
-#define PRINTF(fmt, ...) lt_log(__FILE__, __LINE__, LOG_DEBUG, LT_UNKNOWN, HASH(fmt), ##__VA_ARGS__)
+#define PRINTF(fmt, ...) lt_log(HASH16(__FILE__), __LINE__, LOG_DEBUG, LT_UNKNOWN, HASH32(fmt), ##__VA_ARGS__)
 
 
 ltrace_msg_e lt_init(lt_init_t *init);
-int32_t lt_log(char* filename, int line_nr, log_t log_level, uint16_t comp_id, uint32_t hash, ...);
+ltrace_msg_e lt_log(uint16_t filename_hash, int line_nr, log_t log_level, uint16_t comp_id, uint32_t message_hash, ...);
 
 #ifdef __cplusplus
 }
