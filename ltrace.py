@@ -18,5 +18,6 @@ def hash(inData):
         
 
 if __name__ == "__main__":
+    exp_hash=0xf1c6fd7f
     res = hash("funny_bone")
-    print("0x%08x" % res)
+    print("0x%08x %d" %( res, res==exp_hash)
